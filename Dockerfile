@@ -20,11 +20,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor && \
 	mkdir -p /var/log/supervisor
 CMD ["/usr/bin/supervisord", "-n"]
 
-#SSHD
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-server && \
-	mkdir /var/run/sshd && chmod 700 /var/run/sshd && \
-	echo 'root:root' |chpasswd
-
 #Utilities
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y vim less nano maven ntp net-tools inetutils-ping curl git telnet
 
@@ -57,7 +52,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python-software-properties
     DEBIAN_FRONTEND=noninteractive apt-get install -y nginx
 
 #Logstash
-RUN wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.0.tar.gz && \
+RUN wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz && \
 	tar xf logstash-*.tar.gz && \
     rm logstash-*.tar.gz && \
     mv logstash-* logstash
@@ -79,8 +74,9 @@ RUN cd /docker-elk && \
     cp nginx.conf /etc/nginx/nginx.conf && \
     cp supervisord-kibana.conf /etc/supervisor/conf.d && \
     cp logback /logstash/patterns/logback && \
-    cp logstash-forwarder.crt /logstash/logstash-forwarder.crt && \
-    cp logstash-forwarder.key /logstash/logstash-forwarder.key
+    cp certs/logstash-forwarder.crt /logstash/logstash-forwarder.crt && \
+    cp private/logstash-forwarder.key /logstash/logstash-forwarder.key && \
+    cp logstash_conf/conf.d/* /logstash/conf.d/
 
-#80=ngnx, 9200=elasticsearch, 49021=logstash, 49022=lumberjack, 9999=udp
-EXPOSE 22 80 9200 49021 49022 9999/udp
+#48080=nginx, 9200=elasticsearch, 48021=logstash, 48022=lumberjack
+EXPOSE 48080 9200 48021 48022
