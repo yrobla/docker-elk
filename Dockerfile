@@ -15,11 +15,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get autoclean
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade
 
-#Supervisord
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor && \
-	mkdir -p /var/log/supervisor
-CMD ["/usr/bin/supervisord", "-n"]
-
 #Utilities
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y vim less nano ntp net-tools inetutils-ping curl git telnet
 
@@ -31,7 +26,7 @@ RUN echo 'deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main' > /
     DEBIAN_FRONTEND=noninteractive apt-get install -y oracle-java7-installer
 
 #ElasticSearch
-RUN wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.0.tar.gz && \
+RUN wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz && \
     tar xf elasticsearch-*.tar.gz && \
     rm elasticsearch-*.tar.gz && \
     mv elasticsearch-* elasticsearch && \
@@ -59,10 +54,16 @@ ADD ./ /docker-elk
 RUN cd /docker-elk && \
     mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.saved && \
     cp nginx.conf /etc/nginx/nginx.conf && \
-    cp supervisord-kibana.conf /etc/supervisor/conf.d && \
     cp certs/logstash-forwarder.crt /logstash/logstash-forwarder.crt && \
     cp private/logstash-forwarder.key /logstash/logstash-forwarder.key && \
-    cp logstash.conf /logstash/
+    cp logstash.conf /logstash/ && \
+    cp elasticsearch.yml /elasticsearch/
+
+#Supervisord
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor && \
+	mkdir -p /var/log/supervisor
+RUN cd /docker-elk && cp supervisord-kibana.conf /etc/supervisor/conf.d
+CMD ["/usr/bin/supervisord", "-n"]
 
 #48080=nginx, 9200=elasticsearch, 48021=logstash, 48022=lumberjack
 EXPOSE 48080 9200 48021 48022
